@@ -308,15 +308,6 @@ cctv-store-analytics/
 
 ---
 
-## 💻 System Requirements
-
-- **Python**: 3.10+
-- **RAM**: 8GB minimum (for YOLOv8 inference)
-- **Disk**: 2GB (for model cache + events)
-- **Video codec**: H.264, HEVC supported via OpenCV
-
----
-
 ## 📚 Documentation
 
 - [docs/DESIGN.md](docs/DESIGN.md) — System architecture & design decisions
@@ -331,14 +322,3 @@ See LICENSE file.
 
 ---
 
-## ✨ Key Features
-
-✅ **Real-time CCTV Processing** — YOLOv8 person detection on video streams  
-✅ **Visitor Tracking** — Persistent ID assignment across frames & cameras  
-✅ **Cross-Camera Correlation** — Link entry → floor → billing events  
-✅ **Zone Classification** — Auto-detect visitor location (makeup, fragrance, etc.)  
-✅ **Retail Metrics** — Conversion funnel, dwell time, heatmap, queue monitoring  
-✅ **Anomaly Detection** — Alert on queue spikes, dead zones, conversion drops  
-✅ **REST API** — JSON endpoints for analytics consumption  
-✅ **No GPU Required** — Runs on CPU with YOLOv8-nano  
-✅ **Extensible** — Add custom zones, events, and rules easily
