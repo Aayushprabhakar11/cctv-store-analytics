@@ -1,0 +1,24 @@
+{
+  "stores": [
+    {
+      "store_id": "STORE_BLR_002",
+      "name": "Brigade Bangalore",
+      "city": "Bangalore",
+      "open_hours_utc": { "open": "09:00", "close": "22:00" },
+      "cameras": [
+        { "camera_id": "CAM_ENTRY_01", "role": "entry", "zones": ["ENTRY_THRESHOLD"] },
+        { "camera_id": "CAM_MAIN_01", "role": "floor", "zones": ["FOH", "SKINCARE", "MAKEUP", "FRAGRANCE", "MENS_CARE"] },
+        { "camera_id": "CAM_BILLING_01", "role": "billing", "zones": ["BILLING"] }
+      ],
+      "zones": [
+        { "zone_id": "ENTRY_THRESHOLD", "label": "Store Entrance", "sku_zone": null },
+        { "zone_id": "FOH", "label": "Front of House", "sku_zone": "GENERAL" },
+        { "zone_id": "SKINCARE", "label": "Skin & Derm", "sku_zone": "MOISTURISER" },
+        { "zone_id": "MAKEUP", "label": "Makeup Island", "sku_zone": "MAKEUP" },
+        { "zone_id": "FRAGRANCE", "label": "Fragrance & Nail", "sku_zone": "FRAGRANCE" },
+        { "zone_id": "MENS_CARE", "label": "Mens Care Wall", "sku_zone": "MENS" },
+        { "zone_id": "BILLING", "label": "Cash Counter", "sku_zone": null }
+      ]
+    }
+  ]
+}

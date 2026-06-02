@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+data/store_intel.db
+data/generated_events.jsonl
+clips/
+*.pt
+.env
+.venv/
+venv/

@@ -1,0 +1,8 @@
+[run]
+omit =
+    pipeline/detect.py
+    pipeline/feed_api.py
+    pipeline/video_processor.py
+
+[report]
+fail_under = 70
