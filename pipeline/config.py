@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("STORE_INTEL_DATA_DIR", str(ROOT / "data")))
 CLIPS_DIR = Path(os.environ.get("CLIPS_DIR", str(ROOT / "clips")))
 
-# Process every Nth frame (15fps clip → ~7.5 detections/sec at stride=2)
-FRAME_STRIDE = int(os.environ.get("PIPELINE_FRAME_STRIDE", "2"))
+# Process every frame for more accurate CCTV analytics
+FRAME_STRIDE = int(os.environ.get("PIPELINE_FRAME_STRIDE", "1"))
 
 # YOLO person confidence — emit events even when low for robust analytics
 CONF_THRESHOLD = float(os.environ.get("PIPELINE_CONF_THRESHOLD", "0.35"))
