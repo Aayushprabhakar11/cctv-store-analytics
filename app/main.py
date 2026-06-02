@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+import uvicorn
 
 from app.anomalies import detect_anomalies
 from app.database import get_session, init_db, is_db_available, set_db_available
@@ -193,3 +194,11 @@ async def root():
     </body>
     </html>
     """
+
+
+def main() -> None:
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=False)
+
+
+if __name__ == "__main__":
+    main()

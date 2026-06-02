@@ -90,8 +90,10 @@ async def test_synthetic_pipeline_events(client: AsyncClient):
         for line in f:
             if line.strip():
                 events.append(json.loads(line))
-    ingest = await client.post("/events/ingest", json={"events": events})
-    assert ingest.status_code == 200
+    # API contract: max 500 events per ingest request
+    for i in range(0, len(events), 500):
+        ingest = await client.post("/events/ingest", json={"events": events[i : i + 500]})
+        assert ingest.status_code == 200
     metrics = await client.get(f"/stores/{STORE_ID}/metrics")
     assert metrics.json()["unique_visitors"] >= 5
     entries = sum(1 for e in events if e["event_type"] in ("ENTRY", "REENTRY") and not e["is_staff"])
