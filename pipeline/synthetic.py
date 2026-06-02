@@ -1,4 +1,4 @@
-"""Generate realistic events when challenge clips are unavailable (dev / CI)."""
+"""Generate realistic events when video clips are unavailable (dev / CI)."""
 
 import csv
 import json

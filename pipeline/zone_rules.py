@@ -1,6 +1,6 @@
 """Rule-based zone classification from bbox position (per camera).
 
-Tuned for Purplle Brigade Bangalore clips (1080p overhead / high-angle):
+Tuned for high-angle retail store clips (1080p overhead / high-angle):
   entry.mp4      — glass door, customers enter from bottom of frame
   main_floor*.mp4 — wall gondolas top, makeup station right, FOH centre
   billing.mp4    — cash counter on left, queue in centre-left
@@ -69,7 +69,7 @@ class ZoneClassifier:
 
     @staticmethod
     def staff_heuristic(frame, bbox: tuple[float, float, float, float]) -> bool:
-        """Purplle staff purple apron only — avoid flagging customers in dark clothing."""
+        """Staff uniform detection — avoid flagging customers in dark clothing."""
         try:
             import cv2
             import numpy as np

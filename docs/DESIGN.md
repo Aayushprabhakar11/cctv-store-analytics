@@ -2,7 +2,7 @@
 
 ## Overview
 
-This system closes the offline analytics gap for Apex Retail (Purplle-style beauty stores) by turning anonymised CCTV into structured behavioural events, then exposing real-time store intelligence through a containerised REST API. The north-star metric is **offline conversion rate**: purchasers divided by unique visitor sessions.
+This system closes the offline analytics gap for retail stores by turning anonymised CCTV into structured behavioural events, then exposing real-time store intelligence through a containerised REST API. The north-star metric is **offline conversion rate**: purchasers divided by unique visitor sessions.
 
 ```
 CCTV clips → Detection (YOLOv8 + rules) → JSONL events → POST /events/ingest
@@ -15,7 +15,7 @@ CCTV clips → Detection (YOLOv8 + rules) → JSONL events → POST /events/inge
 
 - **`detect.py`**: Entry point. Processes clips under `CLIPS_DIR` with YOLOv8n person class + `model.track()`, or `--synthetic` when clips are missing (CI / pre-dataset).
 - **`tracker.py`**: Assigns `visitor_id` tokens (`VIS_xxxx`), tracks exits for re-entry windows, staff heuristics.
-- **`zone_rules.py`**: Camera-specific bbox-to-zone mapping (entry threshold, FOH aisles, billing). Purplle Brigade layout: entrance left, billing right, FOH centre, wall bays (see `data/store_layout.json`).
+- **`zone_rules.py`**: Camera-specific bbox-to-zone mapping (entry threshold, FOH aisles, billing). Store layout example: entrance left, billing right, FOH centre, wall bays (see `data/store_layout.json`).
 - **`emit.py`**: Emits schema-compliant events including `ZONE_DWELL` every 30s, `BILLING_QUEUE_JOIN` with `queue_depth`, `REENTRY` instead of duplicate `ENTRY`.
 - **`synthetic.py`**: Deterministic simulator for group entry (3× `ENTRY`), staff (`is_staff=true`), re-entry, abandonment, POS-aligned billing visits, low-confidence events.
 
@@ -40,11 +40,11 @@ Cross-camera dedup: same `visitor_id` is reused when Re-ID window matches; entry
 | File | Role |
 |------|------|
 | `data/store_layout.json` | Zones, cameras for STORE_BLR_002 |
-| `data/pos_transactions.csv` | Challenge-format POS |
+| `data/pos_transactions.csv` | Sample store POS |
 | `data/sample_events.jsonl` | Schema examples |
 | `data/generated_events.jsonl` | Pipeline output |
 
-Replace sample files with the official challenge ZIP when available.
+Replace sample files with the official dataset ZIP when available.
 
 ### CCTV footage (when you provide videos)
 
@@ -58,7 +58,7 @@ Replace sample files with the official challenge ZIP when available.
 
 1. **Zone classification**: An LLM suggested labelling zones from floor-plan images. I overrode with rule-based bbox fractions per camera — faster, reproducible on 15fps CPU, and easier to defend in follow-up. VLMs remain an upgrade path when layout changes per store.
 
-2. **Staff detection**: AI proposed uniform colour clustering; I kept HSV purple-ratio on crop (Purplle staff aprons) plus “visits all zones” heuristic in synthetic tests. Agreed on excluding `is_staff=true` from all customer metrics.
+2. **Staff detection**: AI proposed uniform colour clustering; I kept HSV purple-ratio on crop (staff apron colour) plus “visits all zones” heuristic in synthetic tests. Agreed on excluding `is_staff=true` from all customer metrics.
 
 3. **Session vs visitor in funnel**: AI initially double-counted re-entries at Entry. I changed funnel to count **sessions** (`ENTRY` + `REENTRY` each start a session) while `/metrics` unique visitors uses distinct `visitor_id` among customer sessions.
 
@@ -68,4 +68,4 @@ Replace sample files with the official challenge ZIP when available.
 
 ## Brigade Bangalore context
 
-Reference POS (`Brigade_Bangalore_10_April_26.csv`) informed zone mix (Faces, Good Vibes, makeup-heavy) and Revised layout bays (Foxtale, JC, Mens Care). Challenge store id remains `STORE_BLR_002` per problem statement.
+Reference POS (`Brigade_Bangalore_10_April_26.csv`) informed zone mix (Faces, Good Vibes, makeup-heavy) and revised layout bays (Foxtale, JC, Mens Care). Store id remains `STORE_BLR_002`.

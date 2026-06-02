@@ -13,7 +13,7 @@
 
 **What AI suggested:** Start with YOLOv8 medium; use GPT-4V for zone labels from floor plan.
 
-**What I chose:** YOLOv8**n** + rule-based zones. Reason: 1080p/15fps × 20 min × 3 cameras must finish in reasonable time on a candidate laptop; challenge scores reasoning and edge-case handling, not SOTA mAP. When clips are absent, **synthetic** mode still demonstrates full schema + API path for reviewers.
+**What I chose:** YOLOv8**n** + rule-based zones. Reason: 1080p/15fps × 20 min × 3 cameras must finish in reasonable time on a candidate laptop; the repo prioritises reasoning and edge-case handling, not SOTA mAP. When clips are absent, **synthetic** mode still demonstrates full schema + API path for reviewers.
 
 **Partial occlusion:** Low-confidence boxes are still emitted (`confidence` field); ingest never drops them.
 
@@ -28,7 +28,7 @@
 
 **What AI suggested:** Minimal schema with optional JSON blob.
 
-**What I chose:** Exact challenge catalogue — enables funnel stages, dwell heatmaps, and queue metadata without parsing blobs. `event_id` UUID for idempotent ingest; `session_seq` in metadata for ordering; `sku_zone` from `store_layout.json`.
+**What I chose:** Exact event catalogue — enables funnel stages, dwell heatmaps, and queue metadata without parsing blobs. `event_id` UUID for idempotent ingest; `session_seq` in metadata for ordering; `sku_zone` from `store_layout.json`.
 
 **Conversion without customer_id:** Visitor must appear in `BILLING` (or `BILLING_QUEUE_JOIN`) in the 5-minute window before POS timestamp — matches problem statement and Brigade POS timing patterns.
 

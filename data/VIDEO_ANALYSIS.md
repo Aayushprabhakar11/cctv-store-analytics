@@ -1,4 +1,4 @@
-# Brigade Bangalore CCTV — clip analysis (10-Apr-2026)
+# Sample CCTV store — clip analysis
 
 ## Files processed
 
@@ -22,8 +22,8 @@ Camera OSD: `10/04/2026` ~20:08–20:12 (IST). Pipeline timeline starts `2026-04
 
 ## Tuning applied
 
-- Zone rules matched to high-angle Purplle layout (door bottom, shelves top, billing left).
-- Staff = purple apron only (dark clothing no longer flags all customers).
+- Zone rules matched to high-angle retail layout (door bottom, shelves top, billing left).
+- Staff = uniform colour only (dark clothing no longer flags all customers).
 - `CAM 4` excluded from discovery (non-FOH).
 - Sequential clip timestamps for POS alignment with `data/pos_transactions.csv`.
 
@@ -31,4 +31,4 @@ Camera OSD: `10/04/2026` ~20:08–20:12 (IST). Pipeline timeline starts `2026-04
 
 - Lower `PIPELINE_FRAME_STRIDE` to 2 for more accurate entry/exit counts.
 - Adjust `pipeline/zone_rules.py` if evaluation feedback shows blind spots.
-- Map `CLIP_START_ISO` to exact OSD if challenge provides clip metadata.
+- Map `CLIP_START_ISO` to exact OSD if dataset provides clip metadata.

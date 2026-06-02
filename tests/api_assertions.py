@@ -1,5 +1,5 @@
 """
-Example assertions mirroring the challenge harness (run via pytest tests/test_assertions.py).
+Example assertions mirroring the store analytics harness (run via pytest tests/test_assertions.py).
 """
 
 STORE_ID = "STORE_BLR_002"

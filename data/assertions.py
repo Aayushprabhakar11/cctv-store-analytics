@@ -1,5 +1,5 @@
 """
-Challenge-style assertion helpers (reference copy for local validation).
+Store analytics assertion helpers (reference copy for local validation).
 Run full suite: python -m pytest tests/
 """
 

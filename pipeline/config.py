@@ -10,7 +10,7 @@ CLIPS_DIR = Path(os.environ.get("CLIPS_DIR", str(ROOT / "clips")))
 # Process every Nth frame (15fps clip → ~7.5 detections/sec at stride=2)
 FRAME_STRIDE = int(os.environ.get("PIPELINE_FRAME_STRIDE", "2"))
 
-# YOLO person confidence — emit events even when low (challenge requirement)
+# YOLO person confidence — emit events even when low for robust analytics
 CONF_THRESHOLD = float(os.environ.get("PIPELINE_CONF_THRESHOLD", "0.35"))
 
 YOLO_MODEL = os.environ.get("PIPELINE_YOLO_MODEL", "yolov8n.pt")

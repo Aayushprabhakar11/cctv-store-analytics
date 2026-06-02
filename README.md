@@ -1,12 +1,12 @@
-# Purplle Store Intelligence (CCTV → API)
+# CCTV Store Analytics (CCTV → API)
 
-End-to-end pipeline for the Purplle Tech Challenge 2026 Round 2: raw CCTV → structured events → Store Intelligence API with live metrics.
+End-to-end pipeline for CCTV store analytics: raw CCTV → structured events → Store Intelligence API with live metrics.
 
 ## Quick start (5 commands)
 
 ```bash
 git clone <your-repo>
-cd "purplle cctv"
+cd "cctv-store-analytics"
 docker compose up --build -d
 python -m pipeline.detect --synthetic
 python -m pipeline.feed_api
@@ -44,7 +44,7 @@ uvicorn app.main:app --reload
 
 One-liner when API is up: `python -m pipeline.detect --clips-dir ./clips --feed`
 
-## With challenge ZIP (metadata only)
+## With dataset ZIP (metadata only)
 
 1. Unzip dataset; place clips in `./clips/`.
 2. Copy official `store_layout.json`, `pos_transactions.csv`, `sample_events.jsonl` into `data/`.
@@ -78,7 +78,7 @@ pip install -r requirements.txt
 pytest --cov=app --cov=pipeline --cov-report=term-missing
 ```
 
-Target: **>70%** coverage. Test files include `# PROMPT:` / `# CHANGES MADE:` headers per challenge Part D.
+Target: **>70%** coverage. Test files include `# PROMPT:` / `# CHANGES MADE:` headers per Part D.
 
 ## Documentation
 
@@ -94,4 +94,4 @@ Target: **>70%** coverage. Test files include `# PROMPT:` / `# CHANGES MADE:` he
 
 ## Reference data
 
-Brigade Bangalore POS and floor layouts are documented under your `purplle-challenge-reference` folder; this repo uses challenge store id `STORE_BLR_002`.
+Brigade Bangalore POS and floor layouts are documented under your `store-reference` folder; this repo uses store id `STORE_BLR_002`.

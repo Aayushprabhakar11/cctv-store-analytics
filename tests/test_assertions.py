@@ -1,4 +1,4 @@
-"""Run challenge-style assertions against the API."""
+"""Run store analytics assertions against the API."""
 
 import pytest
 from httpx import AsyncClient
@@ -12,7 +12,7 @@ from tests.api_assertions import (
 
 
 @pytest.mark.asyncio
-async def test_challenge_assertions(seeded_client: AsyncClient, sample_events):
+async def test_store_analytics_assertions(seeded_client: AsyncClient, sample_events):
     first = await seeded_client.post("/events/ingest", json={"events": sample_events})
     second = await seeded_client.post("/events/ingest", json={"events": sample_events})
     assert_ingest_idempotent(first.json(), second.json())

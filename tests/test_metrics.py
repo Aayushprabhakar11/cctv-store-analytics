@@ -1,7 +1,7 @@
 # PROMPT: Write pytest tests for a FastAPI store metrics API covering empty store,
 # staff exclusion, conversion rate bounds, and idempotent ingest. Use httpx AsyncClient.
 # CHANGES MADE: Added funnel/heatmap checks, re-entry session test via synthetic fixture,
-# and assertions.py helpers aligned to challenge schema.
+# and assertions.py helpers aligned to the store analytics schema.
 
 import json
 from pathlib import Path
