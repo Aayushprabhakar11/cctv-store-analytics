@@ -85,13 +85,6 @@ Target: **>70%** coverage. Test files include `# PROMPT:` / `# CHANGES MADE:` he
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture + AI-assisted decisions  
 - [docs/CHOICES.md](docs/CHOICES.md) — model, schema, API trade-offs  
 
-## Scoring alignment (85+)
-
-- **Detection**: Group entry, staff flag, re-entry, schema, confidence preserved  
-- **API**: Session funnel, POS conversion window, anomalies, heatmap confidence flag  
-- **Production**: Docker, structured logs, health, idempotent ingest, edge-case tests  
-- **AI engineering**: DESIGN.md, CHOICES.md, prompt blocks in tests  
-
 ## Reference data
 
 Brigade Bangalore POS and floor layouts are documented under your `store-reference` folder; this repo uses store id `STORE_BLR_002`.
