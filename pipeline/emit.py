@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from pipeline.tracker import Track, VisitSession
+from pipeline import config as pconfig
 
 
 def new_event_id() -> str:
@@ -48,6 +49,64 @@ def write_jsonl(events: list[dict], path: Path) -> None:
     with open(path, "w", encoding="utf-8") as f:
         for ev in events:
             f.write(json.dumps(ev) + "\n")
+
+
+def _merge_group_entries(events: list[dict]) -> list[dict]:
+    """Collapse near-simultaneous ENTRY events at same camera into GROUP_ENTRY."""
+    if not pconfig.MERGE_GROUP_ENTRIES:
+        return events
+    entries = [e for e in events if e["event_type"] == "ENTRY"]
+    others = [e for e in events if e["event_type"] != "ENTRY"]
+    entries_sorted = sorted(entries, key=lambda e: e["timestamp"]) if entries else []
+    merged: list[dict] = []
+    used = set()
+    from datetime import datetime
+
+    def ts_to_dt(ts: str) -> datetime:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+
+    for i, e in enumerate(entries_sorted):
+        if i in used:
+            continue
+        group = [e]
+        t0 = ts_to_dt(e["timestamp"])
+        cam = e.get("camera_id")
+        for j in range(i + 1, len(entries_sorted)):
+            if j in used:
+                continue
+            ej = entries_sorted[j]
+            if ej.get("camera_id") != cam:
+                continue
+            if (ts_to_dt(ej["timestamp"]) - t0).total_seconds() <= pconfig.MERGE_GROUP_WINDOW_S:
+                group.append(ej)
+                used.add(j)
+        if len(group) == 1:
+            merged.append(e)
+        else:
+            # create GROUP_ENTRY event
+            ge = dict(group[0])
+            ge["event_id"] = new_event_id()
+            ge["event_type"] = "GROUP_ENTRY"
+            ge["metadata"] = ge.get("metadata", {})
+            ge["metadata"]["group_size"] = len(group)
+            merged.append(ge)
+    return others + merged
+
+
+def apply_output_filters(events: list[dict]) -> list[dict]:
+    """Apply pipeline-level output filters: staff exclusion, reentry emission, group merging."""
+    out = list(events)
+    # Exclude staff entirely if configured
+    if pconfig.EXCLUDE_STAFF:
+        out = [e for e in out if not e.get("is_staff")]
+    # Drop REENTRY events if configured
+    if not pconfig.EMIT_REENTRY:
+        out = [e for e in out if e.get("event_type") != "REENTRY"]
+    # Merge group entries if configured
+    out = _merge_group_entries(out)
+    # Sort by timestamp for deterministic output
+    out.sort(key=lambda e: e["timestamp"])
+    return out
 
 
 def session_to_events(

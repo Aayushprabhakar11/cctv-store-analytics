@@ -26,3 +26,13 @@ DWELL_INTERVAL_MS = int(os.environ.get("PIPELINE_DWELL_INTERVAL_MS", "30000"))
 CROSS_CAMERA_LINK_SECONDS = int(os.environ.get("PIPELINE_CROSS_CAMERA_SEC", "180"))
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
+
+# Optional runtime flags to control event emission and grouping
+# Set via environment variables to customize pipeline outputs for testing/production
+EXCLUDE_STAFF = os.environ.get("PIPELINE_EXCLUDE_STAFF", "false").lower() in ("1", "true", "yes")
+# When False, REENTRY events are dropped from output (to avoid double-counting)
+EMIT_REENTRY = os.environ.get("PIPELINE_EMIT_REENTRY", "true").lower() in ("1", "true", "yes")
+# Merge near-simultaneous entry events into a single GROUP_ENTRY event
+MERGE_GROUP_ENTRIES = os.environ.get("PIPELINE_MERGE_GROUP_ENTRIES", "false").lower() in ("1", "true", "yes")
+# Window (seconds) to consider entries part of the same group
+MERGE_GROUP_WINDOW_S = int(os.environ.get("PIPELINE_MERGE_GROUP_WINDOW_S", "5"))

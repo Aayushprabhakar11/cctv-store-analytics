@@ -69,6 +69,14 @@ def main() -> None:
 
         if not events:
             events = generate_synthetic_events(data_dir)
+        # Apply pipeline-level filters (staff exclusion, reentry emission, group merging)
+        try:
+            from pipeline.emit import apply_output_filters
+
+            events = apply_output_filters(events)
+        except Exception:
+            # If filters fail for any reason, fall back to raw events
+            pass
         write_jsonl(events, out)
         print(f"Wrote {len(events)} events -> {out}")
 
