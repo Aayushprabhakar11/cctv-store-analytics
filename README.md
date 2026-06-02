@@ -104,6 +104,25 @@ $env:PIPELINE_CONF_THRESHOLD="0.5"
 python -m pipeline.detect --clips-dir ./clips --feed
 ```
 
+### New: Output filtering & grouping
+
+You can control which events the pipeline emits using environment variables. These are useful to exclude staff, drop REENTRY events, or merge simultaneous entries into a single group event:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PIPELINE_EXCLUDE_STAFF` | `false` | If `true`, events with `is_staff=true` are excluded from output |
+| `PIPELINE_EMIT_REENTRY` | `true` | If `false`, `REENTRY` events are dropped (avoids double-counting) |
+| `PIPELINE_MERGE_GROUP_ENTRIES` | `false` | If `true`, near-simultaneous `ENTRY` events at the same camera are collapsed into a `GROUP_ENTRY` with `metadata.group_size` |
+| `PIPELINE_MERGE_GROUP_WINDOW_S` | `5` | Time window (seconds) for grouping simultaneous entries |
+
+Example (exclude staff and drop REENTRY events):
+
+```powershell
+$env:PIPELINE_EXCLUDE_STAFF="true"
+$env:PIPELINE_EMIT_REENTRY="false"
+python -m pipeline.detect --clips-dir ./clips --feed
+```
+
 ---
 
 ## 📊 Output Example

@@ -157,6 +157,24 @@ $env:PIPELINE_FRAME_STRIDE="3"
 python -m pipeline.detect --clips-dir ./clips --feed
 ```
 
+### Output filtering & grouping
+
+Control event emission with these env vars:
+
+```powershell
+# Exclude staff events from output
+$env:PIPELINE_EXCLUDE_STAFF="true"
+
+# Drop REENTRY events to avoid double-counting
+$env:PIPELINE_EMIT_REENTRY="false"
+
+# Merge near-simultaneous ENTRY events into GROUP_ENTRY
+$env:PIPELINE_MERGE_GROUP_ENTRIES="true"
+$env:PIPELINE_MERGE_GROUP_WINDOW_S="5"
+
+python -m pipeline.detect --clips-dir ./clips --feed
+```
+
 ### Confidence Threshold
 
 ```powershell
