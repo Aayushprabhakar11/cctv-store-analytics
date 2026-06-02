@@ -3,10 +3,12 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
-data/store_intel.db
-data/generated_events.jsonl
-clips/
-*.pt
 .env
 .venv/
 venv/
+
+# Local generated artifacts
+data/store_intel.db
+data/generated_events.jsonl
+pipeline_run.log
+pipeline_run_stride5.log
