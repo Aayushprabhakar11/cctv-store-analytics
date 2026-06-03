@@ -129,7 +129,7 @@ def process_clip(
             continue
 
         ts = start + timedelta(seconds=frame_idx / fps)
-        results = model.track(frame, persist=True, classes=[0], verbose=False)
+        results = model.track(frame, persist=True, tracker="bytetrack.yaml", classes=[0], verbose=False)
         frame_idx += 1
         processed += 1
 
@@ -266,7 +266,7 @@ def process_all_stores(
     return results
 
 
-def dedupe_events(events: list[dict], min_gap_s: float = 2.0) -> list[dict]:
+def dedupe_events(events: list[dict], min_gap_s: float = 15.0) -> list[dict]:
     """Collapse duplicate zone enters for same visitor within min_gap_s."""
     from datetime import datetime
 

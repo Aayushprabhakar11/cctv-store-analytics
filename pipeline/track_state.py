@@ -154,19 +154,15 @@ class TrackStateMachine:
             entry_line = self.entry_line_y if self.entry_line_y is not None else 0.6
             exit_line = self.exit_line_y if self.exit_line_y is not None else 0.72
 
-            # ENTRY: cross from outside (cy > entry_line) to inside (cy <= entry_line)
+            # Require at least 3 frames of tracking before emitting ENTRY
+            # to avoid ghost detections from brief YOLO flickers
             if (
                 not st.has_entry
+                and st.frames_seen >= 3
                 and prev_cy is not None
                 and prev_cy > entry_line
                 and cy <= entry_line
             ):
-                ev = "REENTRY" if is_reentry else "ENTRY"
-                events.append(self._emit(st, ev, ts, zone_id=None, confidence=conf))
-                st.has_entry = True
-
-            # fallback if we don't have prev point yet
-            if not st.has_entry and prev_cy is None and cy > entry_line:
                 ev = "REENTRY" if is_reentry else "ENTRY"
                 events.append(self._emit(st, ev, ts, zone_id=None, confidence=conf))
                 st.has_entry = True

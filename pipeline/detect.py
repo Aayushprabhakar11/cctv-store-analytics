@@ -59,7 +59,11 @@ def main() -> None:
             events = generate_synthetic_events(data_dir)
         else:
             try:
-                events = process_all_clips(clips_dir, args.store_id, data_dir)
+                from pipeline.video_processor import process_all_stores
+                all_events = process_all_stores(clips_dir, data_dir)
+                events = []
+                for store_events in all_events.values():
+                    events.extend(store_events)
             except ImportError as exc:
                 print(f"Video dependencies missing ({exc}); falling back to synthetic.")
                 events = generate_synthetic_events(data_dir)
