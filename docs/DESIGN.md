@@ -39,7 +39,7 @@ Cross-camera dedup: same `visitor_id` is reused when Re-ID window matches; entry
 
 | File | Role |
 |------|------|
-| `data/store_layout.json` | Zones, cameras for STORE_BLR_002 |
+| `data/store_layout.json` | Zones, cameras for ST1008 and ST1076 |
 | `data/pos_transactions.csv` | Sample store POS |
 | `data/sample_events.jsonl` | Schema examples |
 | `data/generated_events.jsonl` | Pipeline output |
@@ -64,8 +64,13 @@ Replace sample files with the official dataset ZIP when available.
 
 ## Deployment
 
-`docker compose up` starts the API on port 8000. Optional `docker compose --profile dashboard up` runs the live terminal dashboard.
+`docker compose up` starts the API on port 8000. 
+The live analytics dashboard is a lightweight HTML/JS web interface served directly from the root (`/`) of the FastAPI server, complete with WebSockets for real-time updates and seamless store switching.
 
-## Brigade Bangalore context
+## Multi-Store Context
 
-Reference POS (`Brigade_Bangalore_10_April_26.csv`) informed zone mix (Faces, Good Vibes, makeup-heavy) and revised layout bays (Foxtale, JC, Mens Care). Store id remains `STORE_BLR_002`.
+Reference POS data informed zone mix and revised layout bays across multiple stores. The architecture now explicitly supports dynamic store switching between **ST1008** (Brigade Road) and **ST1076** (Mumbai), processing 8 specific clips across distinct camera roles (entry, floor, billing).
+
+## Tracking Accuracy & Ghost Filtering
+
+To solve over-counting in dense or short clips, the state machine requires at least 3 frames of continuous tracking before emitting an `ENTRY`. We use `bytetrack.yaml` for robust ID preservation, process at a stride of 15 frames, and maintain a 15-second deduplication gap to collapse redundant events for the same visitor.

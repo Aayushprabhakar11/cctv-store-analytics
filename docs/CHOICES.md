@@ -57,3 +57,21 @@
 - **40 live stores:** First bottleneck is ingest write rate → Kafka + Postgres read replicas; funnel pre-aggregation by hour.
 - **Better accuracy:** Upgrade to YOLOv8s + OSNet Re-ID across entry/floor overlap; keep schema stable.
 - **VLM zones:** If each store has unique layouts weekly, fine-tune a small classifier or use VLM offline to generate zone polygons once per refit.
+
+---
+
+## 4. Tracking Accuracy Tuning (Over-counting Fix)
+
+**The Problem:** The pipeline was generating ~489 events for 3 minutes of video due to rapid ID-switching (ghost detections) and redundant triggers.
+**What I chose:** 
+1. **ByteTrack:** Replaced default tracker with `bytetrack.yaml` for robust ID preservation even through occlusion.
+2. **Ghost Filtering:** Added a minimum threshold of 3 continuous frames of tracking before emitting an `ENTRY` to ignore brief flicker detections.
+3. **Stride & Confidence:** Increased `FRAME_STRIDE` to 15 and `CONF_THRESHOLD` to 0.55. Sampling less frequently with higher confidence dramatically improved tracker stability for retail CCTV.
+4. **15s Dedupe:** Increased the deduplication gap from 2s to 15s to collapse rapid zone re-entries by the same person.
+
+---
+
+## 5. UI Connection Debouncing (Anti-flickering)
+
+**The Problem:** Switching between ST1008 and ST1076 caused overlapping WebSocket and REST responses, leading to extreme UI flickering.
+**What I chose:** I implemented a strict `fetchGen` generation counter. Switching stores increments the counter, and any asynchronous responses (`fetch` or `ws.onmessage`) that resolve with an older generation ID are instantly discarded. This cleanly solves race conditions without needing complex AbortControllers.
