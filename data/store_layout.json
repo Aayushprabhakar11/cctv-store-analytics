@@ -1,23 +1,98 @@
 {
   "stores": [
     {
-      "store_id": "STORE_BLR_002",
-      "name": "Brigade Bangalore",
+      "store_id": "ST1008",
+      "name": "Purplle Store 1 – Brigade Road",
       "city": "Bangalore",
-      "open_hours_utc": { "open": "09:00", "close": "22:00" },
+      "open_hours_utc": { "open": "06:00", "close": "16:00" },
       "cameras": [
-        { "camera_id": "CAM_ENTRY_01", "role": "entry", "zones": ["ENTRY_THRESHOLD"] },
-        { "camera_id": "CAM_MAIN_01", "role": "floor", "zones": ["FOH", "SKINCARE", "MAKEUP", "FRAGRANCE", "MENS_CARE"] },
-        { "camera_id": "CAM_BILLING_01", "role": "billing", "zones": ["BILLING"] }
+        {
+          "camera_id": "CAM1",
+          "role": "floor",
+          "zones": ["FOH", "WALL_UNIT_LEFT", "GONDOLA_1", "GONDOLA_2"],
+          "clip_pattern": "CAM 1"
+        },
+        {
+          "camera_id": "CAM2",
+          "role": "floor",
+          "zones": ["FOH", "WALL_UNIT_RIGHT", "MAKEUP_STATION"],
+          "clip_pattern": "CAM 2"
+        },
+        {
+          "camera_id": "CAM3",
+          "role": "entry",
+          "zones": ["ENTRY_THRESHOLD"],
+          "entry_line_y": 0.6,
+          "exit_line_y": 0.72,
+          "clip_pattern": "CAM 3"
+        },
+        {
+          "camera_id": "CAM5",
+          "role": "billing",
+          "zones": ["BILLING"],
+          "behind_counter_box": { "cx_max": 0.3, "cy_max": 0.5 },
+          "clip_pattern": "CAM 5"
+        }
       ],
       "zones": [
         { "zone_id": "ENTRY_THRESHOLD", "label": "Store Entrance", "sku_zone": null },
         { "zone_id": "FOH", "label": "Front of House", "sku_zone": "GENERAL" },
-        { "zone_id": "SKINCARE", "label": "Skin & Derm", "sku_zone": "MOISTURISER" },
-        { "zone_id": "MAKEUP", "label": "Makeup Island", "sku_zone": "MAKEUP" },
-        { "zone_id": "FRAGRANCE", "label": "Fragrance & Nail", "sku_zone": "FRAGRANCE" },
-        { "zone_id": "MENS_CARE", "label": "Mens Care Wall", "sku_zone": "MENS" },
-        { "zone_id": "BILLING", "label": "Cash Counter", "sku_zone": null }
+        { "zone_id": "WALL_UNIT_LEFT", "label": "Wall Units 1-6 (Left)", "sku_zone": "SKINCARE" },
+        { "zone_id": "WALL_UNIT_RIGHT", "label": "Wall Units 7-15 (Right)", "sku_zone": "MAKEUP" },
+        { "zone_id": "GONDOLA_1", "label": "Gondola Island 1", "sku_zone": "FRAGRANCE" },
+        { "zone_id": "GONDOLA_2", "label": "Gondola Island 2", "sku_zone": "HAIRCARE" },
+        { "zone_id": "MAKEUP_STATION", "label": "Makeup Trial Station", "sku_zone": "MAKEUP" },
+        { "zone_id": "BILLING", "label": "Cash Counter", "sku_zone": null },
+        { "zone_id": "BOH", "label": "Back of House (Staff Only)", "sku_zone": null }
+      ]
+    },
+    {
+      "store_id": "ST1076",
+      "name": "Purplle Store 2 – Mumbai",
+      "city": "Mumbai",
+      "open_hours_utc": { "open": "06:00", "close": "16:00" },
+      "cameras": [
+        {
+          "camera_id": "CAM_ENTRY_01",
+          "role": "entry",
+          "zones": ["ENTRY_THRESHOLD"],
+          "entry_line_y": 0.6,
+          "exit_line_y": 0.72,
+          "clip_pattern": "entry"
+        },
+        {
+          "camera_id": "CAM_ENTRY_02",
+          "role": "entry",
+          "zones": ["ENTRY_THRESHOLD"],
+          "entry_line_y": 0.6,
+          "exit_line_y": 0.72,
+          "clip_pattern": "entry 2"
+        },
+        {
+          "camera_id": "CAM_FLOOR_01",
+          "role": "floor",
+          "zones": ["FOH", "LEFT_SHELF", "CENTER_DISPLAY", "FRAGRANCE_NAIL", "MAKEUP_UNIT"],
+          "clip_pattern": "zone"
+        },
+        {
+          "camera_id": "CAM_BILLING_01",
+          "role": "billing",
+          "zones": ["BILLING"],
+          "behind_counter_box": { "cx_max": 0.25, "cy_max": 0.5 },
+          "clip_pattern": "billing_area"
+        }
+      ],
+      "zones": [
+        { "zone_id": "ENTRY_THRESHOLD", "label": "Store Entrance", "sku_zone": null },
+        { "zone_id": "FOH", "label": "Front of House", "sku_zone": "GENERAL" },
+        { "zone_id": "LEFT_SHELF", "label": "Left Wall Shelf (Salon/TFS)", "sku_zone": "SKINCARE" },
+        { "zone_id": "CENTER_DISPLAY", "label": "Center Display Island", "sku_zone": "FRAGRANCE" },
+        { "zone_id": "FRAGRANCE_NAIL", "label": "Fragrance & Nail Unit", "sku_zone": "FRAGRANCE" },
+        { "zone_id": "MAKEUP_UNIT", "label": "Makeup Trial Unit", "sku_zone": "MAKEUP" },
+        { "zone_id": "MENS_WALL", "label": "Mens / Mars+Nybae Wall", "sku_zone": "MENS" },
+        { "zone_id": "LOREAL_WALL", "label": "L'oreal / Brand Wall", "sku_zone": "PREMIUM" },
+        { "zone_id": "BILLING", "label": "Cash Counter", "sku_zone": null },
+        { "zone_id": "ACCESS_AREA", "label": "Access / Back Area", "sku_zone": null }
       ]
     }
   ]

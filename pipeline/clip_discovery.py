@@ -1,4 +1,4 @@
-"""Discover CCTV clip files and map them to camera roles."""
+"""Discover CCTV clip files and map them to camera roles and stores."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ from pathlib import Path
 
 from pipeline.config import CLIPS_DIR, VIDEO_EXTENSIONS
 
-# Order matters: more specific patterns first
 # Clips matching these are skipped (stock room / non-customer areas)
 SKIP_PATTERNS = re.compile(
     r"cam\s*4|backroom|back_room|stock|storage|staff.?only",
@@ -16,10 +15,16 @@ SKIP_PATTERNS = re.compile(
 )
 
 ROLE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("entry", re.compile(r"entry|entrance|door|threshold|cam[_-]?e\b", re.I)),
-    ("billing", re.compile(r"billing|bill|counter|cash|checkout|cam[_-]?b", re.I)),
-    ("floor", re.compile(r"main[_\s-]?floor|floor|foh|aisle|cam[_-]?main", re.I)),
+    ("entry", re.compile(r"entry|entrance|door|threshold|cam[_-]?e\b|cam\s*3", re.I)),
+    ("billing", re.compile(r"billing|bill|counter|cash|checkout|cam[_-]?b|cam\s*5", re.I)),
+    ("floor", re.compile(r"main[_\s-]?floor|floor|foh|aisle|cam[_-]?main|zone|cam\s*[12]\b", re.I)),
 ]
+
+# Map store folder names to store IDs
+STORE_FOLDER_MAP = {
+    "store_1": "ST1008",
+    "store_2": "ST1076",
+}
 
 
 @dataclass
@@ -38,13 +43,19 @@ def infer_role(path: Path) -> str | None:
 
 
 def infer_store_id(path: Path) -> str | None:
+    # Check if the clip is inside a store_X subfolder
+    for part in path.parts:
+        part_lower = part.lower()
+        if part_lower in STORE_FOLDER_MAP:
+            return STORE_FOLDER_MAP[part_lower]
+
     text = path.as_posix()
     m = re.search(r"STORE_[A-Z]{3}_\d{3}", text, re.I)
     if m:
         return m.group(0).upper()
     m = re.search(r"ST\d{4}", text, re.I)
     if m:
-        return f"STORE_{m.group(0).upper()}"
+        return m.group(0).upper()
     return None
 
 
@@ -52,10 +63,11 @@ def discover_clips(clips_dir: Path | None = None) -> list[DiscoveredClip]:
     """
     Recursively find video files under clips_dir and classify by filename/path.
 
-    Expected examples (any of these work):
-      clips/STORE_BLR_002/entry.mp4
-      clips/entry_cam.mp4
-      clips/CAM_ENTRY_01_20min.mp4
+    Supports multi-store layout:
+      clips/store_1/CAM 1 - zone.mp4   → ST1008, floor
+      clips/store_1/CAM 3 - entry.mp4  → ST1008, entry
+      clips/store_2/entry 1.mp4        → ST1076, entry
+      clips/store_2/billing_area.mp4   → ST1076, billing
     """
     root = clips_dir or CLIPS_DIR
     if not root.exists():

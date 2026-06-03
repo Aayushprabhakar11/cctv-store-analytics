@@ -25,13 +25,26 @@ def _parse_clip_start() -> datetime:
     return datetime.fromisoformat(CLIP_START_ISO.replace("Z", "+00:00"))
 
 
-def load_layout(data_dir: Path) -> tuple[dict[str, str], dict[str, str]]:
+def load_layout(data_dir: Path) -> dict:
+    """Load the full store layout; returns the parsed JSON dict."""
     layout_path = data_dir / "store_layout.json"
-    layout = json.loads(layout_path.read_text(encoding="utf-8"))
-    store = layout["stores"][0]
+    return json.loads(layout_path.read_text(encoding="utf-8"))
+
+
+def get_store_config(layout: dict, store_id: str) -> dict | None:
+    """Get config for a specific store from the layout."""
+    for store in layout.get("stores", []):
+        if store["store_id"] == store_id:
+            return store
+    return None
+
+
+def get_store_cameras_and_zones(store: dict) -> tuple[dict[str, str], dict[str, str], dict[str, dict]]:
+    """Extract cameras, zone_sku map, and camera_meta from a store config."""
     cameras = {c["role"]: c["camera_id"] for c in store["cameras"]}
+    camera_meta = {c["role"]: c for c in store["cameras"]}
     zone_sku = {z["zone_id"]: z.get("sku_zone") for z in store["zones"] if z.get("sku_zone")}
-    return cameras, zone_sku
+    return cameras, zone_sku, camera_meta
 
 
 def count_billing_queue(track_boxes: list[tuple], frame_shape: tuple) -> int:
@@ -66,9 +79,27 @@ def process_clip(
     registry = registry or CrossCameraRegistry(CROSS_CAMERA_LINK_SECONDS)
     visitor_tracker = visitor_tracker or VisitorTracker(store_id)
 
-    _, zone_sku = load_layout(data_dir)
-    is_entry = "ENTRY" in camera_id
-    is_billing = "BILLING" in camera_id
+    layout = load_layout(data_dir)
+    store_cfg = get_store_config(layout, store_id)
+    if store_cfg:
+        _, zone_sku, camera_meta = get_store_cameras_and_zones(store_cfg)
+    else:
+        # Fallback to first store
+        _, zone_sku, camera_meta = get_store_cameras_and_zones(layout["stores"][0])
+
+    is_entry = "ENTRY" in camera_id.upper() or camera_id.upper() == "CAM3"
+    is_billing = "BILLING" in camera_id.upper() or camera_id.upper() == "CAM5"
+
+    # Find the right camera meta by camera_id
+    meta = {}
+    for cam_cfg in (store_cfg or layout["stores"][0])["cameras"]:
+        if cam_cfg["camera_id"] == camera_id:
+            meta = cam_cfg
+            break
+    if not meta:
+        role_key = "entry" if is_entry else ("billing" if is_billing else "floor")
+        meta = camera_meta.get(role_key, {})
+
     machine = TrackStateMachine(
         store_id=store_id,
         camera_id=camera_id,
@@ -77,12 +108,12 @@ def process_clip(
         dwell_interval_ms=DWELL_INTERVAL_MS,
         zone_sku=zone_sku,
         on_exit=visitor_tracker.mark_exit,
+        entry_line_y=float(meta.get("entry_line_y", 0.6)) if is_entry else None,
+        exit_line_y=float(meta.get("exit_line_y", 0.72)) if is_entry else None,
+        behind_counter_box=meta.get("behind_counter_box") if is_billing else None,
     )
-    # Floor clips may not have MAIN in camera_id — infer from role via clip metadata
-    zone_cam_id = camera_id
-    if "MAIN" not in camera_id and "FLOOR" not in camera_id and not is_entry and not is_billing:
-        zone_cam_id = "CAM_MAIN_01"
-    zones = ZoneClassifier(zone_cam_id)
+
+    zones = ZoneClassifier(camera_id, store_id=store_id)
     model = YOLO(YOLO_MODEL)
 
     events: list[dict] = []
@@ -125,7 +156,7 @@ def process_clip(
         queue_depth = count_billing_queue(billing_boxes, frame.shape) if is_billing else 0
 
         for yolo_id, conf, x1, y1, x2, y2, cx, zone, is_staff in detections:
-            visitor_id = registry.claim_visitor(yolo_id, ts)
+            visitor_id = registry.claim_visitor(camera_id, yolo_id, ts)
             is_reentry = False
 
             if visitor_id is None:
@@ -140,7 +171,7 @@ def process_clip(
                 else:
                     track = visitor_tracker.assign_track(ts, conf, is_staff_hint=is_staff)
                     visitor_id = track.visitor_id
-                registry.bind_track(yolo_id, visitor_id)
+                registry.bind_track(camera_id, yolo_id, visitor_id)
 
             st = machine.get_or_create(yolo_id, visitor_id, ts, is_staff, conf)
             cy = (y1 + y2) / 2 / frame.shape[0]
@@ -172,14 +203,22 @@ def process_all_clips(
     from pipeline.clip_discovery import discover_clips, clips_summary
 
     clips = discover_clips(clips_dir)
-    print(clips_summary(clips))
-    if not clips:
+    # Filter clips for this specific store
+    store_clips = [c for c in clips if c.store_id == store_id or c.store_id is None]
+    print(clips_summary(store_clips))
+    if not store_clips:
         return []
 
-    cameras, _ = load_layout(data_dir)
+    layout = load_layout(data_dir)
+    store_cfg = get_store_config(layout, store_id)
+    if not store_cfg:
+        print(f"Warning: No store config found for {store_id}, using first store")
+        store_cfg = layout["stores"][0]
+
+    cameras, _, _ = get_store_cameras_and_zones(store_cfg)
     role_order = ("entry", "floor", "billing")
     by_role: dict[str, list[DiscoveredClip]] = {r: [] for r in role_order}
-    for c in clips:
+    for c in store_clips:
         if c.role in by_role:
             by_role[c.role].append(c)
 
@@ -207,6 +246,24 @@ def process_all_clips(
 
     all_events.sort(key=lambda e: e["timestamp"])
     return dedupe_events(all_events)
+
+
+def process_all_stores(
+    clips_dir: Path,
+    data_dir: Path,
+) -> dict[str, list[dict]]:
+    """Process clips for all stores defined in the layout."""
+    layout = load_layout(data_dir)
+    results: dict[str, list[dict]] = {}
+    for store in layout.get("stores", []):
+        store_id = store["store_id"]
+        print(f"\n{'='*60}")
+        print(f"Processing store: {store_id} ({store.get('name', '')})")
+        print(f"{'='*60}")
+        events = process_all_clips(clips_dir, store_id, data_dir)
+        results[store_id] = events
+        print(f"Total events for {store_id}: {len(events)}")
+    return results
 
 
 def dedupe_events(events: list[dict], min_gap_s: float = 2.0) -> list[dict]:

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Purplle Store Intelligence Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #0f0a14 0%, #1a1025 50%, #0f0a14 100%);
+            color: #e8dff0;
+            min-height: 100vh;
+        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 24px 16px 60px; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 900;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #c46ee0, #8c2ea8, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .subtitle { color: #9585a3; font-size: 0.95rem; margin-bottom: 14px; }
+
+        /* Store Switcher */
+        .store-switcher {
+            display: flex; justify-content: center; gap: 8px; margin-bottom: 18px;
+        }
+        .store-btn {
+            padding: 10px 22px;
+            border-radius: 999px;
+            border: 1px solid rgba(140,46,168,0.3);
+            background: rgba(30,20,40,0.7);
+            color: #b09ac0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(8px);
+        }
+        .store-btn:hover { border-color: rgba(140,46,168,0.6); color: #d4bfe6; }
+        .store-btn.active {
+            background: linear-gradient(135deg, rgba(140,46,168,0.35), rgba(168,85,247,0.2));
+            border-color: #a855f7;
+            color: #e8dff0;
+            box-shadow: 0 0 20px rgba(168,85,247,0.15);
+        }
+
+        .topbar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+        .pill {
+            padding: 8px 14px;
+            background: rgba(30,20,40,0.6);
+            color: #9585a3;
+            border-radius: 999px;
+            border: 1px solid rgba(140,46,168,0.2);
+            font-size: 0.85rem;
+            backdrop-filter: blur(6px);
+        }
+        .pill b { color: #c46ee0; font-weight: 800; }
+
+        .layout { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 14px; align-items: start; margin-top: 14px; }
+        @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .card {
+            background: rgba(25,18,35,0.8);
+            border: 1px solid rgba(140,46,168,0.15);
+            border-radius: 16px;
+            padding: 16px;
+            backdrop-filter: blur(12px);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            border-color: rgba(140,46,168,0.35);
+            box-shadow: 0 4px 24px rgba(140,46,168,0.1);
+        }
+        .card-title {
+            color: #8d7d97; letter-spacing: 0.1em; text-transform: uppercase;
+            font-size: 0.72rem; font-weight: 600; margin-bottom: 8px;
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .card-value {
+            font-size: clamp(1.8rem, 3vw, 2.2rem); font-weight: 900;
+            color: #f0e6f6; line-height: 1;
+            background: linear-gradient(135deg, #f0e6f6, #c46ee0);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .card-caption { margin-top: 6px; color: #7a6b88; font-size: 0.85rem; }
+
+        .section { margin-top: 14px; }
+        .panelTitle { font-size: 1rem; font-weight: 800; color: #d4bfe6; margin-bottom: 10px; }
+
+        .zone-list { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (max-width: 720px) { .zone-list { grid-template-columns: 1fr; } }
+
+        .zone-item {
+            background: rgba(30,22,42,0.7);
+            border: 1px solid rgba(140,46,168,0.12);
+            border-radius: 14px; padding: 12px;
+            transition: border-color 0.2s;
+        }
+        .zone-item:hover { border-color: rgba(140,46,168,0.3); }
+        .zone-item strong { color: #d4bfe6; font-size: 0.9rem; }
+
+        .small { color: #7a6b88; font-size: 0.85rem; }
+
+        .bar {
+            height: 8px; border-radius: 999px;
+            background: rgba(140,46,168,0.12);
+            overflow: hidden; margin-top: 8px;
+        }
+        .bar > i {
+            display: block; height: 100%; width: 0%;
+            background: linear-gradient(90deg, #a855f7, #c46ee0);
+            border-radius: 999px; transition: width .4s ease;
+        }
+
+        .sideStack { display: grid; gap: 14px; }
+
+        .anomalyList { display: grid; gap: 10px; }
+        .anomalyItem { background: rgba(30,22,42,0.7); border: 1px solid rgba(140,46,168,0.12); border-radius: 14px; padding: 12px; }
+        .badge {
+            display: inline-flex; align-items: center; padding: 5px 10px;
+            border-radius: 999px; font-size: .78rem; font-weight: 800; margin-bottom: 8px;
+        }
+        .badge.INFO { background: rgba(47,111,176,0.15); color: #6db3f0; border: 1px solid rgba(47,111,176,0.3); }
+        .badge.WARN { background: rgba(167,103,21,0.15); color: #f0b94d; border: 1px solid rgba(167,103,21,0.3); }
+        .badge.CRITICAL { background: rgba(164,59,75,0.15); color: #f07080; border: 1px solid rgba(164,59,75,0.3); }
+
+        .fStage {
+            padding: 10px; border-radius: 12px;
+            background: rgba(30,22,42,0.7); border: 1px solid rgba(140,46,168,0.12);
+            margin-bottom: 8px;
+        }
+        .fHead { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .fHead b { color: #d4bfe6; font-weight: 800; font-size: 0.9rem; }
+        .fHead span { color: #7a6b88; font-family: ui-monospace, monospace; font-size: .85rem; }
+
+        .endpoint {
+            color: #9585a3; background: rgba(20,14,30,0.6);
+            border-radius: 10px; padding: 10px 12px;
+            font-family: ui-monospace, monospace; font-size: 0.82rem;
+            border: 1px solid rgba(140,46,168,0.12); margin-top: 8px;
+        }
+        .endpoint a { color: #a855f7; text-decoration: none; }
+        .endpoint a:hover { text-decoration: underline; color: #c46ee0; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .card, .zone-item, .fStage { animation: fadeIn 0.4s ease-out; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Purplle Store Intelligence</h1>
+            <p class="subtitle">Traffic, conversion, queue health, funnels, and zones — live multi-store view.</p>
+            <div class="store-switcher">
+                <button class="store-btn active" data-store="ST1008" onclick="switchStore('ST1008')">🏪 Store 1 — Brigade Road</button>
+                <button class="store-btn" data-store="ST1076" onclick="switchStore('ST1076')">🏪 Store 2 — Mumbai</button>
+            </div>
+            <div class="topbar">
+                <span class="pill">Store: <b id="storeLabel">ST1008</b></span>
+                <span class="pill">Refresh: 3s</span>
+                <span class="pill">Last update: <b id="lastUpdate">—</b></span>
+                <span class="pill">Feed: <b id="feedStatus">—</b></span>
+            </div>
+        </header>
+
+        <div class="layout">
+            <div>
+                <div class="grid" id="metrics">
+                    <div class="card"><div class="card-title"><span>Unique visitors</span><span class="small">Sessions</span></div><div class="card-value" id="visitors">—</div><div class="card-caption">Distinct customer sessions</div></div>
+                    <div class="card"><div class="card-title"><span>Conversion rate</span><span class="small">Billing</span></div><div class="card-value" id="conversion">—</div><div class="card-caption">Checkout reach</div></div>
+                    <div class="card"><div class="card-title"><span>Queue depth</span><span class="small">Live</span></div><div class="card-value" id="queue">—</div><div class="card-caption">Current billing queue</div></div>
+                    <div class="card"><div class="card-title"><span>Abandonment</span><span class="small">Drop-off</span></div><div class="card-value" id="abandonment">—</div><div class="card-caption">Queue drop-off rate</div></div>
+                    <div class="card"><div class="card-title"><span>Staff filtered</span><span class="small">Excluded</span></div><div class="card-value" id="staff">—</div><div class="card-caption">Filtered staff events</div></div>
+                </div>
+
+                <section class="section card">
+                    <div class="panelTitle">Funnel (session-based)</div>
+                    <div id="funnel"></div>
+                </section>
+
+                <section class="section card">
+                    <div class="panelTitle">Zone Performance</div>
+                    <div id="zones" class="zone-list"><div class="zone-item small">Loading zone metrics…</div></div>
+                </section>
+            </div>
+
+            <div class="sideStack">
+                <section class="card">
+                    <div class="panelTitle">Heatmap Tiles</div>
+                    <div id="heatmapTiles" class="zone-list" style="grid-template-columns: 1fr 1fr;"></div>
+                </section>
+
+                <section class="card">
+                    <div class="panelTitle">Anomalies</div>
+                    <div id="anomalies" class="anomalyList"><div class="small">Loading…</div></div>
+                </section>
+
+                <section class="card">
+                    <div class="panelTitle">API Reference</div>
+                    <div id="apiLinks"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let storeId = 'ST1008';
+        let ws = null;
+
+        function switchStore(id) {
+            storeId = id;
+            document.getElementById('storeLabel').textContent = id;
+            document.querySelectorAll('.store-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.store === id);
+            });
+            if (ws) { try { ws.close(); } catch(e) {} }
+            refreshAll();
+            connectWS();
+            updateApiLinks();
+        }
+
+        function updateApiLinks() {
+            document.getElementById('apiLinks').innerHTML = [
+                `/stores/${storeId}/metrics`, `/stores/${storeId}/funnel`,
+                `/stores/${storeId}/heatmap`, `/stores/${storeId}/anomalies`,
+                `/health`, `/docs`
+            ].map(u => `<div class="endpoint"><a href="${u}">${u}</a></div>`).join('');
+        }
+
+        function setLastUpdate() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        function renderMetrics(data) {
+            document.getElementById('visitors').textContent = data.unique_visitors;
+            document.getElementById('conversion').innerHTML = (data.conversion_rate * 100).toFixed(1) + '%';
+            document.getElementById('queue').textContent = data.current_queue_depth;
+            document.getElementById('abandonment').innerHTML = (data.abandonment_rate * 100).toFixed(1) + '%';
+            document.getElementById('staff').textContent = data.staff_events_excluded ?? 0;
+
+            const zones = data.avg_dwell_by_zone || [];
+            if (!zones.length) {
+                document.getElementById('zones').innerHTML = '<div class="zone-item small">No zone data available</div>';
+                return;
+            }
+            document.getElementById('zones').innerHTML = zones.map(zone => {
+                const w = Math.min(100, Math.round((zone.avg_dwell_ms || 0) / 5000 * 100));
+                return `
+                    <div class="zone-item">
+                        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                            <strong>${zone.zone_id}</strong>
+                            <span class="small">${zone.visit_count} visits</span>
+                        </div>
+                        <div class="small" style="margin-top:6px;">Avg dwell: ${((zone.avg_dwell_ms||0)/1000).toFixed(1)}s</div>
+                        <div class="bar"><i style="width:${w}%"></i></div>
+                    </div>
+                `;
+            }).join('');
+            setLastUpdate();
+        }
+
+        function connectWS() {
+            const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + `/ws/metrics/${storeId}`;
+            ws = new WebSocket(wsUrl);
+            ws.onmessage = (event) => { try { renderMetrics(JSON.parse(event.data)); } catch (e) {} };
+            ws.onclose = () => setTimeout(connectWS, 2000);
+            ws.onerror = () => { try { ws.close(); } catch(e) {} };
+        }
+
+        function updateFunnel() {
+            fetch(`/stores/${storeId}/funnel`).then(r => r.json()).then(body => {
+                const stages = body.stages || [];
+                const max = Math.max(...stages.map(s => s.count || 0), 1);
+                document.getElementById('funnel').innerHTML = stages.map(s => {
+                    const pct = Math.round(((s.count||0)/max)*100);
+                    const drop = (s.drop_off_pct === null || s.drop_off_pct === undefined) ? '' : (Number(s.drop_off_pct).toFixed(1) + '% drop');
+                    return `<div class="fStage"><div class="fHead"><b>${s.stage}</b><span>${s.count} ${drop}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`;
+                }).join('');
+            }).catch(() => {});
+        }
+
+        function updateHeatmapTiles() {
+            fetch(`/stores/${storeId}/heatmap`).then(r => r.json()).then(body => {
+                const cells = body.cells || [];
+                const maxV = Math.max(...cells.map(c => c.visit_frequency || 0), 1);
+                const top = cells.slice().sort((a,b) => (b.visit_frequency||0) - (a.visit_frequency||0)).slice(0, 6);
+                if (!top.length) { document.getElementById('heatmapTiles').innerHTML = `<div class="zone-item small">No heatmap data</div>`; return; }
+                document.getElementById('heatmapTiles').innerHTML = top.map(c => {
+                    const vPct = Math.round(((c.visit_frequency||0)/maxV)*100);
+                    return `<div class="zone-item"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><strong>${c.zone_id}</strong><span class="small">${(c.visit_frequency||0).toFixed(1)}</span></div><div class="bar"><i style="width:${vPct}%"></i></div></div>`;
+                }).join('');
+            }).catch(() => {});
+        }
+
+        function updateAnomalies() {
+            fetch(`/stores/${storeId}/anomalies`).then(r => r.json()).then(list => {
+                if (!list.length) { document.getElementById('anomalies').innerHTML = '<div class="small" style="padding:8px;">✅ No anomalies detected</div>'; return; }
+                document.getElementById('anomalies').innerHTML = list.map(a => `
+                    <div class="anomalyItem">
+                        <div class="badge ${a.severity}">${a.severity}</div>
+                        <div style="font-size:0.88rem;color:#d4bfe6;">${a.message}</div>
+                        <div class="small" style="margin-top:4px;">${a.suggested_action}</div>
+                    </div>
+                `).join('');
+            }).catch(() => {});
+        }
+
+        function updateFeedStatus() {
+            fetch('/health').then(r => r.json()).then(h => {
+                const warnings = (h.warnings || []).filter(w => (w || '').includes(storeId));
+                document.getElementById('feedStatus').textContent = warnings.length ? warnings[0] : 'OK';
+            }).catch(() => {});
+        }
+
+        function refreshAll() {
+            fetch(`/stores/${storeId}/metrics`).then(r => r.json()).then(renderMetrics).catch(() => {});
+            updateFunnel(); updateHeatmapTiles(); updateAnomalies(); updateFeedStatus();
+        }
+
+        // Boot
+        updateApiLinks();
+        refreshAll();
+        connectWS();
+        setInterval(updateFunnel, 5000);
+        setInterval(updateHeatmapTiles, 7000);
+        setInterval(updateAnomalies, 15000);
+        setInterval(updateFeedStatus, 12000);
+    </script>
+</body>
+</html>

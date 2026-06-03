@@ -1,4 +1,6 @@
+import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,25 @@ from app.metrics import compute_metrics
 from app.models import Anomaly, AnomalySeverity
 from app.pos_loader import ensure_pos_loaded
 from app.session_logic import customer_events
+
+
+def _load_layout_zones(store_id: str) -> set[str]:
+    """Load zone IDs for a store from the layout JSON."""
+    layout_path = settings.data_dir / settings.store_layout_json
+    if not layout_path.exists():
+        return {"FOH", "SKINCARE", "MAKEUP", "FRAGRANCE", "MENS_CARE"}
+    try:
+        layout = json.loads(layout_path.read_text(encoding="utf-8"))
+        for store in layout.get("stores", []):
+            if store["store_id"] == store_id:
+                return {
+                    z["zone_id"]
+                    for z in store["zones"]
+                    if z.get("sku_zone") is not None  # Only trackable zones
+                }
+    except Exception:
+        pass
+    return {"FOH", "SKINCARE", "MAKEUP", "FRAGRANCE", "MENS_CARE"}
 
 
 async def detect_anomalies(session: AsyncSession, store_id: str) -> list[Anomaly]:
@@ -55,7 +76,7 @@ async def detect_anomalies(session: AsyncSession, store_id: str) -> list[Anomaly
         .group_by(EventRow.zone_id)
     )
     visited_zones = {row[0] for row in zone_result.all()}
-    layout_zones = {"FOH", "SKINCARE", "MAKEUP", "FRAGRANCE", "MENS_CARE"}
+    layout_zones = _load_layout_zones(store_id)
     for zone in layout_zones - visited_zones:
         anomalies.append(
             Anomaly(

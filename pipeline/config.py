@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("STORE_INTEL_DATA_DIR", str(ROOT / "data")))
 CLIPS_DIR = Path(os.environ.get("CLIPS_DIR", str(ROOT / "clips")))
 
-# Process every frame for more accurate CCTV analytics
-FRAME_STRIDE = int(os.environ.get("PIPELINE_FRAME_STRIDE", "1"))
+# Default balanced mode: good signal without long hangs on CPU
+FRAME_STRIDE = int(os.environ.get("PIPELINE_FRAME_STRIDE", "4"))
 
 # YOLO person confidence — emit events even when low for robust analytics
 CONF_THRESHOLD = float(os.environ.get("PIPELINE_CONF_THRESHOLD", "0.35"))
@@ -23,7 +23,7 @@ CLIP_START_ISO = os.environ.get("CLIP_START_ISO", "2026-04-10T14:38:00+00:00")
 DWELL_INTERVAL_MS = int(os.environ.get("PIPELINE_DWELL_INTERVAL_MS", "30000"))
 
 # Link entry-camera visitors to floor/billing tracks within this window
-CROSS_CAMERA_LINK_SECONDS = int(os.environ.get("PIPELINE_CROSS_CAMERA_SEC", "180"))
+CROSS_CAMERA_LINK_SECONDS = int(os.environ.get("PIPELINE_CROSS_CAMERA_SEC", "1200"))
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
 

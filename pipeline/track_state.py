@@ -26,6 +26,8 @@ class TrackState:
     last_cx: float | None = None
     last_cy: float | None = None
     last_seen: datetime | None = None
+    first_seen: datetime | None = None
+    frames_seen: int = 0
     staff_votes: int = 0
     customer_votes: int = 0
 
@@ -59,6 +61,9 @@ class TrackStateMachine:
         dwell_interval_ms: int = 30000,
         zone_sku: dict[str, str] | None = None,
         on_exit=None,
+        entry_line_y: float | None = None,
+        exit_line_y: float | None = None,
+        behind_counter_box: dict | None = None,
     ):
         self.store_id = store_id
         self.camera_id = camera_id
@@ -68,6 +73,9 @@ class TrackStateMachine:
         self.zone_sku = zone_sku or {}
         self.tracks: dict[int, TrackState] = {}
         self.on_exit = on_exit
+        self.entry_line_y = entry_line_y
+        self.exit_line_y = exit_line_y
+        self.behind_counter_box = behind_counter_box or {}
 
     def _emit(
         self,
@@ -109,6 +117,9 @@ class TrackStateMachine:
         st = self.tracks[yolo_id]
         st.note_staff(is_staff)
         st.confidences.append(conf)
+        st.frames_seen += 1
+        if st.first_seen is None:
+            st.first_seen = ts
         st.last_seen = ts
         return st
 
@@ -126,26 +137,53 @@ class TrackStateMachine:
         events: list[dict] = []
         prev_cx = st.last_cx
         st.last_cx = cx
+        prev_cy = st.last_cy
+
+        # Staff heuristics (non-apron)
+        if self.is_billing_cam and not st.is_staff and self.behind_counter_box:
+            cx_max = float(self.behind_counter_box.get("cx_max", 0.22))
+            cy_max = float(self.behind_counter_box.get("cy_max", 0.55))
+            if cx <= cx_max and cy <= cy_max:
+                st.note_staff(True)
+
+        if not st.is_staff and st.first_seen and st.frames_seen >= 60 and len(st.zones_seen) >= 4:
+            # long-lived, multi-zone mover is likely staff
+            st.note_staff(True)
 
         if self.is_entry_cam and zone == "ENTRY_THRESHOLD":
-            # Entry cam: door at bottom of frame — high cy = threshold; entering = moving up (cy decreases)
-            moving_in = (
-                st.last_cy is not None and cy < st.last_cy - 0.015 and cy > 0.45
-            )
-            if not st.has_entry and (st.last_cy is None or moving_in or cy > 0.58):
+            entry_line = self.entry_line_y if self.entry_line_y is not None else 0.6
+            exit_line = self.exit_line_y if self.exit_line_y is not None else 0.72
+
+            # ENTRY: cross from outside (cy > entry_line) to inside (cy <= entry_line)
+            if (
+                not st.has_entry
+                and prev_cy is not None
+                and prev_cy > entry_line
+                and cy <= entry_line
+            ):
                 ev = "REENTRY" if is_reentry else "ENTRY"
                 events.append(self._emit(st, ev, ts, zone_id=None, confidence=conf))
                 st.has_entry = True
-            elif (
+
+            # fallback if we don't have prev point yet
+            if not st.has_entry and prev_cy is None and cy > entry_line:
+                ev = "REENTRY" if is_reentry else "ENTRY"
+                events.append(self._emit(st, ev, ts, zone_id=None, confidence=conf))
+                st.has_entry = True
+
+            # EXIT: cross back from inside to outside
+            if (
                 st.has_entry
                 and not st.has_exit
-                and cy > 0.68
-                and (st.last_cy is None or cy >= st.last_cy - 0.01)
+                and prev_cy is not None
+                and prev_cy < exit_line
+                and cy >= exit_line
             ):
                 events.append(self._emit(st, "EXIT", ts, zone_id=None, confidence=conf))
                 st.has_exit = True
                 if self.on_exit:
                     self.on_exit(st.visitor_id, ts)
+
         st.last_cy = cy
 
         if zone and zone != "ENTRY_THRESHOLD":
