@@ -13,7 +13,7 @@ from pipeline.zone_rules import ZoneClassifier
         ("CAM_ENTRY_01", 0.5, 0.70, "ENTRY_THRESHOLD"),
         ("CAM_BILLING_01", 0.40, 0.50, "BILLING"),
         ("CAM_MAIN_01", 0.20, 0.25, "SKINCARE"),
-        ("CAM_MAIN_01", 0.70, 0.55, "MAKEUP"),
+        ("CAM_MAIN_01", 0.70, 0.75, "MAKEUP"),
     ],
 )
 def test_classify_bbox(camera, cx_norm, cy_norm, expected):

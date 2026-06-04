@@ -36,6 +36,7 @@ def test_entry_exit_reentry():
     )
     t0 = datetime(2026, 3, 3, 14, 0, tzinfo=timezone.utc)
     st = machine.get_or_create(1, "VIS_0001", t0, False, 0.9)
+    st.frames_seen += 5  # Simulate enough frames to avoid ghost filter
     machine.update(st, "ENTRY_THRESHOLD", 0.15, 0.70, t0, 0.9, 0, False)
     t1 = datetime(2026, 3, 3, 14, 5, tzinfo=timezone.utc)
     machine.update(st, "ENTRY_THRESHOLD", 0.40, 0.50, t1, 0.9, 0, False)
